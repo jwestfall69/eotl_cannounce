@@ -18,3 +18,9 @@ This is a fork of the [cannounce](https://forums.alliedmods.net/showthread.php?t
 		"soundFile"		"eotl/someplayer1.mp3"
 	}
 ```
+  * Override a client's custom sound and play the server wide sm_ca_playsoundfile (if enabled) **ONLY** to that client under the following conditions
+    * connecting client is not in the config or has no custom connect sound
+    * the start of a new map
+    * because sm_ca_timenosound prevented it
+
+    The effect of this is at server start up or start of new map, clients will individually hear the server wide connect sound when they connect.  If a player joins during the middle of a map their customer connect sound (if they have one) will be played to all clients.

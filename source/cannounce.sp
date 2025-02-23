@@ -34,7 +34,7 @@
 #include <adminmenu>
 #include <multicolors>
 
-#define VERSION "1.9-eotl-0.6"
+#define VERSION "1.9-eotl-0.7"
 
 /*****************************************************************
 
@@ -130,11 +130,13 @@ public OnMapStart()
 	//get, precache and set downloads for player custom sound files
 	LoadSoundFilesCustomPlayer();
 
-	//precahce and set downloads for sounds files for all players
-	LoadSoundFilesAll();
-
-
 	OnMapStart_JoinMsg();
+}
+
+public OnConfigsExecuted()
+{
+	//precache and set downloads for sounds files for all players
+	LoadSoundFilesAll();
 }
 
 public OnClientAuthorized(client, const String:auth[])

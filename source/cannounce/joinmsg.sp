@@ -108,13 +108,9 @@ OnMapStart_JoinMsg()
 
 OnPostAdminCheck_JoinMsg(const client, const String:steamId[])
 {
-	decl String:soundfile[SOUNDFILE_PATH_LEN];
-
 	new String:message[MSGLENGTH + 1];
 	new String:output[301];
 	new String:soundFilePath[SOUNDFILE_PATH_LEN];
-
-	new bool:customSoundPlayed = false;
 
 	new Float:timeNoSound = GetConVarFloat(g_CvarTimeNoSound);
 	new Float:clientTime = GetClientTime(client);
@@ -139,41 +135,52 @@ OnPostAdminCheck_JoinMsg(const client, const String:steamId[])
 		//Custom join SOUND
 		KvGetString(hKVCustomJoinMessages, "soundfile", soundFilePath, sizeof(soundFilePath), "");
 
-		if( strlen(soundFilePath) > 0)
-        {
-			if(noSoundPeriod)
-			{
-        		LogMessage("Not playing connect sound for %N, because start of map", client, clientTime);
-        		return;
-			}
-
-			if(clientTime > timeNoSound)
-			{
-        		LogMessage("Not playing connect sound for %N, because they have been connected %f seconds", client, clientTime);
-        		return;
-			}
-
-			LogMessage("playing connect sound %s for %N (%f connect time)", soundFilePath, client, clientTime);
-			EmitSoundToAll( soundFilePath );
-			customSoundPlayed = true;
+		if( strlen(soundFilePath) == 0)
+		{
+			LogMessage("%N (%s) in config file, but no soundfile configured", client, steamId);
+			ClientPlayDefaultConnectSound(client);
+			return;
 		}
+
+		if(noSoundPeriod)
+		{
+			LogMessage("Not playing connect sound for %N, because start of map", client, clientTime);
+			ClientPlayDefaultConnectSound(client);
+			return;
+		}
+
+		if(clientTime > timeNoSound)
+		{
+			LogMessage("Not playing connect sound for %N, because they have been connected %f seconds", client, clientTime);
+			ClientPlayDefaultConnectSound(client);
+			return;
+		}
+
+		LogMessage("playing connect sound %s for %N (%f connect time)", soundFilePath, client, clientTime);
+		EmitSoundToAll( soundFilePath );
 	}
 	else
 	{
 		LogMessage("%N (%s) not found in config file", client, steamId);
+		ClientPlayDefaultConnectSound(client);
     }
+}
 
-	KvRewind(hKVCustomJoinMessages);
+ClientPlayDefaultConnectSound(client)
+{
+	decl String:soundfile[SOUNDFILE_PATH_LEN];
 
-	//if enabled and custom sound not already played, play all player sound
-	if( GetConVarInt(g_CvarPlaySound) && !customSoundPlayed)
+	if(!GetConVarInt(g_CvarPlaySound))
 	{
-		GetConVarString(g_CvarPlaySoundFile, soundfile, sizeof(soundfile));
+		return;
+	}
 
-		if( strlen(soundfile) > 0 && !noSoundPeriod)
-		{
-			EmitSoundToAll( soundfile );
-		}
+	GetConVarString(g_CvarPlaySoundFile, soundfile, sizeof(soundfile));
+
+	if(strlen(soundfile))
+	{
+			LogMessage("playing default connect sound %s for %N only", soundfile, client);
+			EmitSoundToClient( client, soundfile );
 	}
 }
 
