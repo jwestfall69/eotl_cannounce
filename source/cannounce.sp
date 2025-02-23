@@ -34,7 +34,7 @@
 #include <adminmenu>
 #include <multicolors>
 
-#define VERSION "1.9"
+#define VERSION "1.9-eotl-0.6"
 
 /*****************************************************************
 
@@ -55,8 +55,8 @@ new Handle:g_CvarConnectDisplayType = INVALID_HANDLE;
 
 
 *****************************************************************/
-#include "cannounce/countryshow.sp"
 #include "cannounce/joinmsg.sp"
+#include "cannounce/countryshow.sp"
 #include "cannounce/geolist.sp"
 #include "cannounce/suppress.sp"
 
@@ -139,32 +139,37 @@ public OnMapStart()
 
 public OnClientAuthorized(client, const String:auth[])
 {
-	if( GetConVarInt(g_CvarConnectDisplayType) == 0 )
+	if( GetConVarInt(g_CvarConnectDisplayType) != 0 )
 	{
-		if( !IsFakeClient(client) && GetClientCount(true) < MaxClients )
-		{
-			OnPostAdminCheck_CountryShow(client);
-
-			OnPostAdminCheck_JoinMsg(auth);
-		}
+		return;
 	}
+
+	if( IsFakeClient(client) )
+	{
+		return;
+	}
+
+	OnPostAdminCheck_CountryShow(client);
+	OnPostAdminCheck_JoinMsg(client, auth);
 }
 
 public OnClientPostAdminCheck(client)
 {
 	decl String:auth[32];
 
-	if( GetConVarInt(g_CvarConnectDisplayType) == 1 )
+	if( GetConVarInt(g_CvarConnectDisplayType) != 1 )
 	{
-		GetClientAuthId( client, AuthId_Steam2, auth, sizeof(auth) );
-
-		if( !IsFakeClient(client) && GetClientCount(true) < MaxClients )
-		{
-			OnPostAdminCheck_CountryShow(client);
-
-			OnPostAdminCheck_JoinMsg(auth);
-		}
+		return;
 	}
+
+	if( IsFakeClient(client) )
+	{
+		return;
+	}
+
+	GetClientAuthId( client, AuthId_Steam2, auth, sizeof(auth) );
+	OnPostAdminCheck_CountryShow(client);
+	OnPostAdminCheck_JoinMsg(client, auth);
 }
 
 public OnPluginEnd()

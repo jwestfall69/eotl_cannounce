@@ -198,12 +198,15 @@ LoadSoundFilesCustomPlayer()
 {
 	new String:sndFile[SOUNDFILE_PATH_LEN];
 	new String:sndFileFullPath[SOUNDFILE_PATH_LEN + 6];
+	new sound_count = 0;
+	new user_count = 0;
 
 	KvGotoFirstSubKey(hKVCustomJoinMessages);
 
 	//cycle thru soundfile values, if they exist, add to download table and precache
 	do
 	{
+		user_count++;
 		KvGetString(hKVCustomJoinMessages,"soundfile", sndFile, sizeof(sndFile) );
 
 		if( strlen( sndFile ) > 0 )
@@ -215,6 +218,7 @@ LoadSoundFilesCustomPlayer()
 				AddFileToDownloadsTable(sndFileFullPath);
 
 				PrecacheSound(sndFile);
+				sound_count++;
 			}
 			else
 			{
@@ -225,4 +229,5 @@ LoadSoundFilesCustomPlayer()
 	while (KvGotoNextKey(hKVCustomJoinMessages));
 
 	KvRewind(hKVCustomJoinMessages);
+	 LogMessage("loaded %d users (%d with join sounds) from config file %s", user_count, sound_count, g_fileset);
 }

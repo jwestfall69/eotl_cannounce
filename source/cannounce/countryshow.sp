@@ -100,6 +100,7 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 	if( GetConVarInt(g_CvarShowDisconnect) )
 	{
 		GetEventString(event, "reason", reason, sizeof(reason));
+		HandleCustomDisconnect(client, reason, sizeof(reason));
 
 		KvRewind(hKVCountryShow);
 
@@ -160,6 +161,59 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 
 
 *****************************************************************/
+HandleCustomDisconnect(client, String:reason[], reasonSize)
+{
+	decl String:steamId[32];
+	decl String:buffer[512];
+	decl String:discoReasons[10][64];
+	decl numReasons;
+	decl pickedReason;
+
+	// only allow custom disconnect if its a normal disconnect messages
+	if(strcmp(reason, "Client Disconnect", false) != 0)
+	{
+		return;
+	}
+
+	if(!IsClientInGame(client) || IsFakeClient(client))
+	{
+		return;
+	}
+
+	if(!GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId)))
+	{
+		LogMessage("HandleCustomDisconnect: Failed to GetClientAuthId client: %N", client);
+		return;
+	}
+
+	KvRewind(hKVCustomJoinMessages);
+	if(!KvJumpToKey(hKVCustomJoinMessages, steamId, false))
+	{
+		LogMessage("HandleCustomDisconnect: client %N (%s) not in config", client, steamId);
+		return;
+	}
+
+	KvGetString(hKVCustomJoinMessages, "discoReason", buffer, sizeof(buffer), "");
+	if(strlen(buffer) == 0)
+	{
+		LogMessage("HandleCustomDisconnect: client %N (%s) is in the config, but no \"discoReason\" defined", client, steamId);
+		return;
+	}
+
+	numReasons = ExplodeString(buffer, ";", discoReasons, 10, 63);
+	pickedReason = GetRandomInt(0, numReasons - 1);
+
+	LogMessage("HandleCustomDisconnect: client %N (%s) numReasons: %d, pickedReason: %d \"%s\"", client, steamId, numReasons, pickedReason, discoReasons[pickedReason]);
+
+	if(strlen(discoReasons[pickedReason]) == 0)
+	{
+		LogMessage("HandleCustomDisconnect: client %N (%s) pickedReason is empty, leaving default reason", client, steamId);
+		return;
+	}
+
+	strcopy(reason, reasonSize, discoReasons[pickedReason]);
+}
+
 SetupDefaultMessages()
 {
 	if(!KvJumpToKey(hKVCountryShow, "messages"))

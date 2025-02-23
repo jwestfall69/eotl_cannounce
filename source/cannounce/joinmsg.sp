@@ -20,6 +20,7 @@ new Handle:g_CvarPlayDiscSound = INVALID_HANDLE;
 new Handle:g_CvarPlayDiscSoundFile = INVALID_HANDLE;
 
 new Handle:g_CvarMapStartNoSound = INVALID_HANDLE;
+new Handle:g_CvarTimeNoSound = INVALID_HANDLE;
 
 new bool:noSoundPeriod = false;
 
@@ -56,7 +57,7 @@ SetupJoinMsg()
 	g_CvarPlayDiscSoundFile = CreateConVar("sm_ca_playdiscsoundfile", "weapons\\cguard\\charging.wav", "Sound to play on player discconnect if sm_ca_playdiscsound = 1");
 
 	g_CvarMapStartNoSound = CreateConVar("sm_ca_mapstartnosound", "30.0", "Time to ignore all player join sounds on a map load");
-
+	g_CvarTimeNoSound = CreateConVar("sm_ca_timenosound", "60.0", "If a player has been connected more then this many seconds dont play connect sound");
 
 	//prepare kv custom messages file
 	hKVCustomJoinMessages = CreateKeyValues("CustomJoinMessages");
@@ -105,7 +106,7 @@ OnMapStart_JoinMsg()
 	}
 }
 
-OnPostAdminCheck_JoinMsg(const String:steamId[])
+OnPostAdminCheck_JoinMsg(const client, const String:steamId[])
 {
 	decl String:soundfile[SOUNDFILE_PATH_LEN];
 
@@ -114,6 +115,11 @@ OnPostAdminCheck_JoinMsg(const String:steamId[])
 	new String:soundFilePath[SOUNDFILE_PATH_LEN];
 
 	new bool:customSoundPlayed = false;
+
+	new Float:timeNoSound = GetConVarFloat(g_CvarTimeNoSound);
+	new Float:clientTime = GetClientTime(client);
+
+	LogMessage("OnPostAdminCheck_JoinMsg(%d, %s) called", client, steamId);
 
 	//get from kv file
 	KvRewind(hKVCustomJoinMessages);
@@ -133,12 +139,29 @@ OnPostAdminCheck_JoinMsg(const String:steamId[])
 		//Custom join SOUND
 		KvGetString(hKVCustomJoinMessages, "soundfile", soundFilePath, sizeof(soundFilePath), "");
 
-		if( strlen(soundFilePath) > 0 && !noSoundPeriod )
-		{
+		if( strlen(soundFilePath) > 0)
+        {
+			if(noSoundPeriod)
+			{
+        		LogMessage("Not playing connect sound for %N, because start of map", client, clientTime);
+        		return;
+			}
+
+			if(clientTime > timeNoSound)
+			{
+        		LogMessage("Not playing connect sound for %N, because they have been connected %f seconds", client, clientTime);
+        		return;
+			}
+
+			LogMessage("playing connect sound %s for %N (%f connect time)", soundFilePath, client, clientTime);
 			EmitSoundToAll( soundFilePath );
 			customSoundPlayed = true;
 		}
 	}
+	else
+	{
+		LogMessage("%N (%s) not found in config file", client, steamId);
+    }
 
 	KvRewind(hKVCustomJoinMessages);
 
