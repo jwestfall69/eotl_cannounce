@@ -86,7 +86,7 @@ IMPORTANT UPGRADE NOTE: After updating and loading this version your MUST delete
 -Added placeholder color {OLIVE}
 -Sounds for 'sm_ca_playsoundfile' and 'sm_ca_playdiscsoundfile' are now added to the download table on map start.
 -Begun new testing versioning method to allow for 3rd party testing of plugins.
--Renamed cvar sm_mapstartnosound to sm_ca_mapstartnosound 
+-Renamed cvar sm_mapstartnosound to sm_ca_mapstartnosound
 -Added new cvar sm_ca_disableclientmsgchange which can prevent ALL clients from setting their own custom join message when using the sm_joinmsg command
 -Fix for connect/disconnect carriage return issue thanks to sipster19 - https://forums.alliedmods.net/showthread.php?p=1554329#post1554329
 

@@ -3,7 +3,7 @@
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License, version 3.0, as published by the
  * Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
@@ -90,37 +90,37 @@ public OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("cannounce.phrases");
-	
+
 	CreateConVar("sm_cannounce_version", VERSION, "Connect announce replacement", FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
 	g_CvarConnectDisplayType = CreateConVar("sm_ca_connectdisplaytype", "1", "[1|0] if 1 then displays connect message after admin check and allows the {PLAYERTYPE} placeholder. If 0 displays connect message on client auth (earlier) and disables the {PLAYERTYPE} placeholder");
-	
+
 	BuildPath(Path_SM, g_fileset, 128, "data/cannounce_messages.txt");
 	BuildPath(Path_SM, g_filesettings, 128, "data/cannounce_settings.txt");
-	
+
 	//event hooks
 	HookEvent("player_disconnect", event_PlayerDisconnect, EventHookMode_Pre);
-	
-	
+
+
 	//country show
 	SetupCountryShow();
-	
+
 	//custom join msg
 	SetupJoinMsg();
-	
+
 	//geographical player list
 	SetupGeoList();
-	
+
 	//suppress standard connection message
 	SetupSuppress();
-	
+
 	//Account for late loading
 	new Handle:topmenu;
 	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != INVALID_HANDLE))
 	{
 		OnAdminMenuReady(topmenu);
 	}
-		
+
 	//create config file if not exists
 	AutoExecConfig(true, "cannounce");
 }
@@ -129,11 +129,11 @@ public OnMapStart()
 {
 	//get, precache and set downloads for player custom sound files
 	LoadSoundFilesCustomPlayer();
-		
+
 	//precahce and set downloads for sounds files for all players
 	LoadSoundFilesAll();
-	
-	
+
+
 	OnMapStart_JoinMsg();
 }
 
@@ -144,7 +144,7 @@ public OnClientAuthorized(client, const String:auth[])
 		if( !IsFakeClient(client) && GetClientCount(true) < MaxClients )
 		{
 			OnPostAdminCheck_CountryShow(client);
-		
+
 			OnPostAdminCheck_JoinMsg(auth);
 		}
 	}
@@ -153,24 +153,24 @@ public OnClientAuthorized(client, const String:auth[])
 public OnClientPostAdminCheck(client)
 {
 	decl String:auth[32];
-	
+
 	if( GetConVarInt(g_CvarConnectDisplayType) == 1 )
 	{
 		GetClientAuthId( client, AuthId_Steam2, auth, sizeof(auth) );
-		
+
 		if( !IsFakeClient(client) && GetClientCount(true) < MaxClients )
 		{
 			OnPostAdminCheck_CountryShow(client);
-		
+
 			OnPostAdminCheck_JoinMsg(auth);
 		}
-	}	
+	}
 }
 
 public OnPluginEnd()
-{		
+{
 	OnPluginEnd_JoinMsg();
-	
+
 	OnPluginEnd_CountryShow();
 }
 
@@ -182,12 +182,12 @@ public OnAdminMenuReady(Handle:topmenu)
 	{
 		return;
 	}
-	
+
 	//Save the Handle
 	hTopMenu = topmenu;
-	
-	
-	OnAdminMenuReady_JoinMsg();	
+
+
+	OnAdminMenuReady_JoinMsg();
 }
 
 
@@ -211,15 +211,15 @@ public OnLibraryRemoved(const String:name[])
 public Action:event_PlayerDisconnect(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
 	if( client && !IsFakeClient(client) && !dontBroadcast )
 	{
 		event_PlayerDisc_CountryShow(event, name, dontBroadcast);
-		
+
 		OnClientDisconnect_JoinMsg();
 	}
-	
-	
+
+
 	return event_PlayerDisconnect_Suppress( event, name, dontBroadcast );
 }
 
@@ -240,7 +240,7 @@ bool:IsLanIP( String:src[16] )
 	if(ExplodeString(src, ".", ip4, 4, 4) == 4)
 	{
 		ipnum = StringToInt(ip4[0])*65536 + StringToInt(ip4[1])*256 + StringToInt(ip4[2]);
-		
+
 		if((ipnum >= 655360 && ipnum < 655360+65535) || (ipnum >= 11276288 && ipnum < 11276288+4095) || (ipnum >= 12625920 && ipnum < 12625920+255))
 		{
 			return true;
@@ -253,18 +253,18 @@ bool:IsLanIP( String:src[16] )
 PrintFormattedMessageToAll( String:rawmsg[301], client )
 {
 	decl String:message[301];
-	
+
 	GetFormattedMessage( rawmsg, client, message, sizeof(message) );
-	
+
 	CPrintToChatAll( "%s", message );
 }
 
 PrintFormattedMessageToAdmins( String:rawmsg[301], client )
 {
 	decl String:message[301];
-	
+
 	GetFormattedMessage( rawmsg, client, message, sizeof(message) );
-	
+
 	for (new i = 1; i <= MaxClients; i++)
 	{
 		if( IsClientInGame(i) && CheckCommandAccess( i, "", ADMFLAG_GENERIC, true ) )
@@ -277,9 +277,9 @@ PrintFormattedMessageToAdmins( String:rawmsg[301], client )
 PrintFormattedMsgToNonAdmins( String:rawmsg[301], client )
 {
 	decl String:message[301];
-	
+
 	GetFormattedMessage( rawmsg, client, message, sizeof(message) );
-	
+
 	for (new i = 1; i <= MaxClients; i++)
 	{
 		if( IsClientInGame(i) && !CheckCommandAccess( i, "", ADMFLAG_GENERIC, true ) )
@@ -302,16 +302,16 @@ GetFormattedMessage( String:rawmsg[301], client, String:outbuffer[], outbuffersi
 	decl String:sPlayerAdmin[32];
 	decl String:sPlayerPublic[32];
 	new bool:bIsLanIp;
-	
+
 	decl AdminId:aid;
-	
+
 	if( client > -1 )
 	{
-		GetClientIP(client, ip, sizeof(ip)); 
-		
+		GetClientIP(client, ip, sizeof(ip));
+
 		//detect LAN ip
 		bIsLanIp = IsLanIP( ip );
-		
+
 		if( bIsLanIp )
 		{
 			Format( city, sizeof(city), "%T", "LAN City Desc", LANG_SERVER );
@@ -328,94 +328,94 @@ GetFormattedMessage( String:rawmsg[301], client, String:outbuffer[], outbuffersi
 			GeoipCode2( ip, ccode );
 			GeoipCode3( ip, ccode3 );
 		}
-		
+
 		// Fallback for unknown/empty location strings
 		if( StrEqual( city, "" ) )
 		{
 			Format( city, sizeof(city), "%T", "Unknown City Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( region, "" ) )
 		{
 			Format( region, sizeof(region), "%T", "Unknown Region Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( country, "" ) )
 		{
 			Format( country, sizeof(country), "%T", "Unknown Country Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( ccode, "" ) )
 		{
 			Format( ccode, sizeof(ccode), "%T", "Unknown Country Short", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( ccode3, "" ) )
 		{
 			Format( ccode3, sizeof(ccode3), "%T", "Unknown Country Short 3", LANG_SERVER );
 		}
-		
+
 		// Add "The" in front of certain countries
-		if( StrContains( country, "United", false ) != -1 || 
-			StrContains( country, "Republic", false ) != -1 || 
-			StrContains( country, "Federation", false ) != -1 || 
-			StrContains( country, "Island", false ) != -1 || 
-			StrContains( country, "Netherlands", false ) != -1 || 
-			StrContains( country, "Isle", false ) != -1 || 
-			StrContains( country, "Bahamas", false ) != -1 || 
-			StrContains( country, "Maldives", false ) != -1 || 
-			StrContains( country, "Philippines", false ) != -1 || 
+		if( StrContains( country, "United", false ) != -1 ||
+			StrContains( country, "Republic", false ) != -1 ||
+			StrContains( country, "Federation", false ) != -1 ||
+			StrContains( country, "Island", false ) != -1 ||
+			StrContains( country, "Netherlands", false ) != -1 ||
+			StrContains( country, "Isle", false ) != -1 ||
+			StrContains( country, "Bahamas", false ) != -1 ||
+			StrContains( country, "Maldives", false ) != -1 ||
+			StrContains( country, "Philippines", false ) != -1 ||
 			StrContains( country, "Vatican", false ) != -1 )
 		{
 			Format( country, sizeof(country), "The %s", country );
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERNAME}") != -1) 
+
+		if (StrContains(rawmsg, "{PLAYERNAME}") != -1)
 		{
 			GetClientName(client, buffer, sizeof(buffer));
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERNAME}", buffer);
 		}
 
-		if (StrContains(rawmsg, "{STEAMID}") != -1) 
+		if (StrContains(rawmsg, "{STEAMID}") != -1)
 		{
 			GetClientAuthId(client, AuthId_Steam2, buffer, sizeof(buffer));
 			ReplaceString(rawmsg, sizeof(rawmsg), "{STEAMID}", buffer);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERCOUNTRY}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERCOUNTRY}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERCOUNTRY}", country);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERCOUNTRYSHORT}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERCOUNTRYSHORT}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERCOUNTRYSHORT}", ccode);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERCOUNTRYSHORT3}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERCOUNTRYSHORT3}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERCOUNTRYSHORT3}", ccode3);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERCITY}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERCITY}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERCITY}", city);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERREGION}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERREGION}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERREGION}", region);
 		}
-		
-		if (StrContains(rawmsg, "{PLAYERIP}") != -1 ) 
+
+		if (StrContains(rawmsg, "{PLAYERIP}") != -1 )
 		{
 			ReplaceString(rawmsg, sizeof(rawmsg), "{PLAYERIP}", ip);
 		}
-		
+
 		if( StrContains(rawmsg, "{PLAYERTYPE}") != -1 && GetConVarInt(g_CvarConnectDisplayType) == 1  )
 		{
 			aid = GetUserAdmin( client );
-			
+
 			if( GetAdminFlag( aid, Admin_Generic ) )
 			{
 				Format( sPlayerAdmin, sizeof(sPlayerAdmin), "%T", "CA Admin", LANG_SERVER );
@@ -428,6 +428,6 @@ GetFormattedMessage( String:rawmsg[301], client, String:outbuffer[], outbuffersi
 			}
 		}
 	}
-	
+
 	Format( outbuffer, outbuffersize, "%s", rawmsg );
 }

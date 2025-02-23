@@ -20,17 +20,17 @@
 	{
 		"en"			"a Local Area Network"
 	}
-	
+
 	"LAN Country Short"
 	{
 		"en"			"LN"
 	}
-	
+
 	"LAN Country Short 3"
 	{
 		"en"			"LAN"
 	}
-	
+
 	"Unknown City Desc"
 	{
 		"en"			"Somewhere"
@@ -43,12 +43,12 @@
 	{
 		"en"			"an Unknown Country"
 	}
-	
+
 	"Unknown Country Short"
 	{
 		"en"			"??"
 	}
-	
+
 	"Unknown Country Short 3"
 	{
 		"en"			"???"

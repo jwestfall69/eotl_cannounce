@@ -24,15 +24,15 @@ SetupCountryShow()
 	g_CvarShowConnect = CreateConVar("sm_ca_showenhanced", "1", "displays enhanced message when player connects");
 	g_CvarShowDisconnect = CreateConVar("sm_ca_showenhanceddisc", "1", "displays enhanced message when player disconnects");
 	g_CvarShowEnhancedToAdmins = CreateConVar("sm_ca_showenhancedadmins", "0", "displays a different enhanced message to admin players (ADMFLAG_GENERIC)");
-	
+
 	//prepare kv for countryshow
 	hKVCountryShow = CreateKeyValues("CountryShow");
-	
+
 	if(!FileToKeyValues(hKVCountryShow, g_filesettings))
 	{
 		KeyValuesToFile(hKVCountryShow, g_filesettings);
 	}
-	
+
 	SetupDefaultMessages();
 }
 
@@ -45,7 +45,7 @@ OnPostAdminCheck_CountryShow(client)
 	if( GetConVarInt(g_CvarShowConnect) )
 	{
 		KvRewind(hKVCountryShow);
-		
+
 		//get message admins will see (if sm_ca_showenhancedadmins)
 		if( KvJumpToKey(hKVCountryShow, "messages_admin", false) )
 		{
@@ -53,7 +53,7 @@ OnPostAdminCheck_CountryShow(client)
 			Format(rawadmmsg, sizeof(rawadmmsg), "%c%s", 1, rawadmmsg);
 			KvRewind(hKVCountryShow);
 		}
-		
+
 		//get message all players will see
 		if( KvJumpToKey(hKVCountryShow, "messages", false) )
 		{
@@ -61,7 +61,7 @@ OnPostAdminCheck_CountryShow(client)
 			Format(rawmsg, sizeof(rawmsg), "%c%s", 1, rawmsg);
 			KvRewind(hKVCountryShow);
 		}
-		
+
 		//if sm_ca_showenhancedadmins - show diff messages to admins
 		if( GetConVarInt(g_CvarShowEnhancedToAdmins) )
 		{
@@ -72,11 +72,11 @@ OnPostAdminCheck_CountryShow(client)
 		{
 			PrintFormattedMessageToAll( rawmsg, client );
 		}
-	}	
+	}
 }
 
 OnPluginEnd_CountryShow()
-{		
+{
 	CloseHandle(hKVCountryShow);
 }
 
@@ -93,7 +93,7 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 	decl String:rawmsg[301];
 	decl String:rawadmmsg[301];
 	decl String:reason[65];
-	
+
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
 	//if enabled, show message
@@ -102,42 +102,42 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 		GetEventString(event, "reason", reason, sizeof(reason));
 
 		KvRewind(hKVCountryShow);
-		
+
 		//get message admins will see (if sm_ca_showenhancedadmins)
 		if( KvJumpToKey(hKVCountryShow, "messages_admin", false) )
 		{
 			KvGetString(hKVCountryShow, "playerdisc", rawadmmsg, sizeof(rawadmmsg), "");
 			Format(rawadmmsg, sizeof(rawadmmsg), "%c%s", 1, rawadmmsg);
 			KvRewind(hKVCountryShow);
-			
+
 			//first replace disconnect reason if applicable
-			if (StrContains(rawadmmsg, "{DISC_REASON}") != -1 ) 
+			if (StrContains(rawadmmsg, "{DISC_REASON}") != -1 )
 			{
 				ReplaceString(rawadmmsg, sizeof(rawadmmsg), "{DISC_REASON}", reason);
-				
+
 				//strip carriage returns, replace with space
 				ReplaceString(rawadmmsg, sizeof(rawadmmsg), "\n", " ");
-				
+
 			}
 		}
-		
+
 		//get message all players will see
 		if( KvJumpToKey(hKVCountryShow, "messages", false) )
 		{
 			KvGetString(hKVCountryShow, "playerdisc", rawmsg, sizeof(rawmsg), "");
 			Format(rawmsg, sizeof(rawmsg), "%c%s", 1, rawmsg);
 			KvRewind(hKVCountryShow);
-			
+
 			//first replace disconnect reason if applicable
-			if (StrContains(rawmsg, "{DISC_REASON}") != -1 ) 
+			if (StrContains(rawmsg, "{DISC_REASON}") != -1 )
 			{
 				ReplaceString(rawmsg, sizeof(rawmsg), "{DISC_REASON}", reason);
-				
+
 				//strip carriage returns, replace with space
 				ReplaceString(rawmsg, sizeof(rawmsg), "\n", " ");
 			}
 		}
-		
+
 		//if sm_ca_showenhancedadmins - show diff messages to admins
 		if( GetConVarInt(g_CvarShowEnhancedToAdmins) )
 		{
@@ -148,7 +148,7 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 		{
 			PrintFormattedMessageToAll( rawmsg, client );
 		}
-		
+
 		KvRewind(hKVCountryShow);
 	}
 }
@@ -163,25 +163,25 @@ public Action:event_PlayerDisc_CountryShow(Handle:event, const String:name[], bo
 SetupDefaultMessages()
 {
 	if(!KvJumpToKey(hKVCountryShow, "messages"))
-	{				
+	{
 		KvJumpToKey(hKVCountryShow, "messages", true);
 		KvSetString(hKVCountryShow, "playerjoin", "{PLAYERTYPE} {GREEN}{PLAYERNAME} {DEFAULT}<{LIGHTGREEN}{STEAMID}{DEFAULT}> connected from country {GREEN}{PLAYERCOUNTRY} {DEFAULT}({LIGHTGREEN}{PLAYERCOUNTRYSHORT}{DEFAULT}), IP {GREEN}{PLAYERIP}");
 		KvSetString(hKVCountryShow, "playerdisc", "{PLAYERTYPE} {GREEN}{PLAYERNAME} {DEFAULT}<{LIGHTGREEN}{STEAMID}{DEFAULT}> from country {GREEN}{PLAYERCOUNTRY} {DEFAULT}({LIGHTGREEN}{PLAYERCOUNTRYSHORT}{DEFAULT}) disconnected from IP {GREEN}{PLAYERIP}{GREEN}reason: {DEFAULT}{DISC_REASON}");
 
-		KvRewind(hKVCountryShow);			
-		KeyValuesToFile(hKVCountryShow, g_filesettings);		
+		KvRewind(hKVCountryShow);
+		KeyValuesToFile(hKVCountryShow, g_filesettings);
 	}
-	
+
 	KvRewind(hKVCountryShow);
-	
+
 	if(!KvJumpToKey(hKVCountryShow, "messages_admin"))
-	{				
+	{
 		KvJumpToKey(hKVCountryShow, "messages_admin", true);
 		KvSetString(hKVCountryShow, "playerjoin", "{PLAYERTYPE} {GREEN}{PLAYERNAME} {DEFAULT}<{LIGHTGREEN}{STEAMID}{DEFAULT}> connected from country {GREEN}{PLAYERCOUNTRY} {DEFAULT}({LIGHTGREEN}{PLAYERCOUNTRYSHORT}{DEFAULT}), IP {GREEN}{PLAYERIP}");
 		KvSetString(hKVCountryShow, "playerdisc", "{PLAYERTYPE} {GREEN}{PLAYERNAME} {DEFAULT}<{LIGHTGREEN}{STEAMID}{DEFAULT}> from country {GREEN}{PLAYERCOUNTRY} {DEFAULT}({LIGHTGREEN}{PLAYERCOUNTRYSHORT}{DEFAULT}) disconnected from IP {GREEN}{PLAYERIP}{GREEN}reason: {DEFAULT}{DISC_REASON}");
 
-		KvRewind(hKVCountryShow);			
-		KeyValuesToFile(hKVCountryShow, g_filesettings);		
+		KvRewind(hKVCountryShow);
+		KeyValuesToFile(hKVCountryShow, g_filesettings);
 	}
 
 	KvRewind(hKVCountryShow);

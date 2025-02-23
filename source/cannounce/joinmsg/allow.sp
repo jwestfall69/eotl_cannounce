@@ -15,13 +15,13 @@ SetupJoinMsg_Allow()
 
 OnAdminMenuReady_JoinMsg_Allow(TopMenuObject:player_commands)
 {
-	AddToTopMenu(hTopMenu, 
+	AddToTopMenu(hTopMenu,
 		"sm_joinmsgon",
 		TopMenuObject_Item,
 		AdminMenu_AllowJoinMsg,
 		player_commands,
 		"sm_joinmsgon",
-		CHECKFLAG);		
+		CHECKFLAG);
 }
 
 /****************************************************************
@@ -35,19 +35,19 @@ OnAdminMenuReady_JoinMsg_Allow(TopMenuObject:player_commands)
 public Action:Command_AllowJoinMsg(client, args)
 {
 	decl String:target[65];
-	
+
 	decl String:target_name[MAX_TARGET_LENGTH];
 	decl target_list[MAXPLAYERS];
 	decl target_count;
 	decl bool:tn_is_ml;
 	new String:steamId[24];
-	
+
 	//not enough arguments, display usage
 	if (args < 1)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_joinmsgon <name or #userid>");
 		return Plugin_Handled;
-	}	
+	}
 
 	//get command arguments
 	GetCmdArg(1, target, sizeof(target));
@@ -65,13 +65,13 @@ public Action:Command_AllowJoinMsg(client, args)
 	{
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
-	}	
+	}
 
-	//set allowed custom join in kv file	
+	//set allowed custom join in kv file
 	if( target_count > 0 && GetClientAuthId(target_list[0], AuthId_Steam2, steamId, sizeof(steamId)) )
 	{
 		DoAllowJoinMsg(steamId,target_name,client);
-		
+
 		//inform player of their enabled custom join msg
 		PrintToChat(target_list[0], "[SM] type sm_joinmsg in console to set your custom join message!");
 	}
@@ -89,13 +89,13 @@ public Action:Command_AllowJoinMsgID(client, args)
 {
 	decl String:player_name[MAX_TARGET_LENGTH];
 	new String:steamId[24];
-	
+
 	//not enough arguments, display usage
 	if (args != 2)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_joinmsgonid \"<steamId>\" \"<player name>\"");
 		return Plugin_Handled;
-	}	
+	}
 
 	//get command arguments
 	GetCmdArg(1, steamId, sizeof(steamId));
@@ -133,21 +133,21 @@ DoAllowJoinMsg( String:steamId[], String:target_name[], client )
 bool:AllowJoinMsg( String:steamId[], String:player_name[] )
 {
 	if(!KvJumpToKey(hKVCustomJoinMessages, steamId))
-	{				
+	{
 		KvJumpToKey(hKVCustomJoinMessages, steamId, true);
 		KvSetString(hKVCustomJoinMessages, "playerwasnamed", player_name );
 
-		KvRewind(hKVCustomJoinMessages);			
+		KvRewind(hKVCustomJoinMessages);
 		KeyValuesToFile(hKVCustomJoinMessages, g_fileset);
-		
-		return true;		
+
+		return true;
 	}
 	else
 	{
 		KvRewind(hKVCustomJoinMessages);
-		
+
 		return false;
-	}	
+	}
 }
 
 
@@ -159,7 +159,7 @@ bool:AllowJoinMsg( String:steamId[], String:player_name[] )
 
 *****************************************************************/
 
-public AdminMenu_AllowJoinMsg(Handle:topmenu, 
+public AdminMenu_AllowJoinMsg(Handle:topmenu,
 					  TopMenuAction:action,
 					  TopMenuObject:object_id,
 					  param,
@@ -179,14 +179,14 @@ public AdminMenu_AllowJoinMsg(Handle:topmenu,
 DisplayAllowJoinMsgMenu(client)
 {
 	new Handle:menu = CreateMenu(MenuHandler_AllowJoinMsg);
-	
+
 	decl String:title[100];
 	Format(title, sizeof(title), "%s:", "Allow custom join message");
 	SetMenuTitle(menu, title);
 	SetMenuExitBackButton(menu, true);
-	
+
 	AddTargetsToMenu(menu, client, true, false);
-	
+
 	DisplayMenu(menu, client, MENU_TIME_FOREVER);
 }
 
@@ -210,8 +210,8 @@ public MenuHandler_AllowJoinMsg(Handle:menu, MenuAction:action, param1, param2)
 		new userid, target;
 		new String:steamId[24];
 		new String:target_name[MAX_TARGET_LENGTH];
-		
-		
+
+
 		GetMenuItem(menu, param2, info, sizeof(info));
 		userid = StringToInt(info);
 
@@ -226,12 +226,12 @@ public MenuHandler_AllowJoinMsg(Handle:menu, MenuAction:action, param1, param2)
 		else
 		{
 			GetClientName(target, target_name, sizeof(target_name));
-			
-			//set allowed custom join in kv file	
+
+			//set allowed custom join in kv file
 			if( GetClientAuthId(target, AuthId_Steam2, steamId, sizeof(steamId)) )
 			{
 				DoAllowJoinMsg(steamId,target_name,param1);
-				
+
 				//inform player of their enabled custom join msg
 				PrintToChat(target, "[SM] type sm_joinmsg in console to set your custom join message!");
 			}
@@ -240,7 +240,7 @@ public MenuHandler_AllowJoinMsg(Handle:menu, MenuAction:action, param1, param2)
 				PrintToChat(param1, "[SM] Unable to find player's steam id");
 			}
 		}
-		
+
 		/* Re-draw the menu if they're still valid */
 		if (IsClientInGame(param1) && !IsClientInKickQueue(param1))
 		{

@@ -9,13 +9,13 @@ SetupGeoList()
 public Action:Command_GeoList(client, args)
 {
 	decl String:target[65];
-	
+
 	decl String:target_name[MAX_TARGET_LENGTH];
 	decl target_list[MAXPLAYERS];
 	decl target_count;
 	decl bool:tn_is_ml;
 	decl String:name[32];
-	
+
 	decl String:ip[16];
 	decl String:city[46];
 	decl String:region[46];
@@ -29,7 +29,7 @@ public Action:Command_GeoList(client, args)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_geolist <name, #userid or @targets>");
 		return Plugin_Handled;
-	}	
+	}
 
 	//get command arguments
 	GetCmdArg(1, target, sizeof(target));
@@ -49,16 +49,16 @@ public Action:Command_GeoList(client, args)
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
 	}
-	
-				
+
+
 	for (new i = 0; i < target_count; i++)
 	{
-		GetClientIP(target_list[i], ip, sizeof(ip)); 
-		GetClientName(target_list[i], name, 32);	
-		
+		GetClientIP(target_list[i], ip, sizeof(ip));
+		GetClientName(target_list[i], name, 32);
+
 		//detect LAN ip
 		bIsLanIp = IsLanIP( ip );
-		
+
 
 		if( bIsLanIp )
 		{
@@ -76,51 +76,51 @@ public Action:Command_GeoList(client, args)
 			GeoipCode2( ip, ccode );
 			GeoipCode3( ip, ccode3 );
 		}
-	
-		
+
+
 		// Fallback for unknown/empty location strings
 		if( StrEqual( city, "" ) )
 		{
 			Format( city, sizeof(city), "%T", "Unknown City Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( region, "" ) )
 		{
 			Format( region, sizeof(region), "%T", "Unknown Region Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( country, "" ) )
 		{
 			Format( country, sizeof(country), "%T", "Unknown Country Desc", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( ccode, "" ) )
 		{
 			Format( ccode, sizeof(ccode), "%T", "Unknown Country Short", LANG_SERVER );
 		}
-		
+
 		if( StrEqual( ccode3, "" ) )
 		{
 			Format( ccode3, sizeof(ccode3), "%T", "Unknown Country Short 3", LANG_SERVER );
 		}
-		
+
 		// Add "The" in front of certain countries
-		if( StrContains( country, "United", false ) != -1 || 
-			StrContains( country, "Republic", false ) != -1 || 
-			StrContains( country, "Federation", false ) != -1 || 
-			StrContains( country, "Island", false ) != -1 || 
-			StrContains( country, "Netherlands", false ) != -1 || 
-			StrContains( country, "Isle", false ) != -1 || 
-			StrContains( country, "Bahamas", false ) != -1 || 
-			StrContains( country, "Maldives", false ) != -1 || 
-			StrContains( country, "Philippines", false ) != -1 || 
+		if( StrContains( country, "United", false ) != -1 ||
+			StrContains( country, "Republic", false ) != -1 ||
+			StrContains( country, "Federation", false ) != -1 ||
+			StrContains( country, "Island", false ) != -1 ||
+			StrContains( country, "Netherlands", false ) != -1 ||
+			StrContains( country, "Isle", false ) != -1 ||
+			StrContains( country, "Bahamas", false ) != -1 ||
+			StrContains( country, "Maldives", false ) != -1 ||
+			StrContains( country, "Philippines", false ) != -1 ||
 			StrContains( country, "Vatican", false ) != -1 )
 		{
 			Format( country, sizeof(country), "The %s", country );
 		}
-		
+
 		ReplyToCommand( client, "%s from %s in %s/%s", name, city, region, country );
-	}			
-	
+	}
+
 	return Plugin_Handled;
 }
