@@ -34,7 +34,7 @@
 #include <adminmenu>
 #include <multicolors>
 
-#define VERSION "1.9-eotl-0.7"
+#define VERSION "1.9-eotl-0.8"
 
 /*****************************************************************
 
@@ -48,6 +48,7 @@ new String:g_fileset[128];
 new String:g_filesettings[128];
 
 new Handle:g_CvarConnectDisplayType = INVALID_HANDLE;
+new Handle:g_CvarDisconnectSuppressThreshold = INVALID_HANDLE;
 /*****************************************************************
 
 
@@ -94,7 +95,7 @@ public OnPluginStart()
 	CreateConVar("sm_cannounce_version", VERSION, "Connect announce replacement", FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
 	g_CvarConnectDisplayType = CreateConVar("sm_ca_connectdisplaytype", "1", "[1|0] if 1 then displays connect message after admin check and allows the {PLAYERTYPE} placeholder. If 0 displays connect message on client auth (earlier) and disables the {PLAYERTYPE} placeholder");
-
+	g_CvarDisconnectSuppressThreshold = CreateConVar("sm_ca_disconnect_suppress_threshold", "0", "suppress showing any disconnect messages if there is <= this number of players");
 	BuildPath(Path_SM, g_fileset, 128, "data/cannounce_messages.txt");
 	BuildPath(Path_SM, g_filesettings, 128, "data/cannounce_settings.txt");
 
@@ -219,14 +220,19 @@ public Action:event_PlayerDisconnect(Handle:event, const String:name[], bool:don
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	if( client && !IsFakeClient(client) && !dontBroadcast )
+	if(client && !IsFakeClient(client) && !dontBroadcast )
 	{
-		event_PlayerDisc_CountryShow(event, name, dontBroadcast);
-
-		OnClientDisconnect_JoinMsg();
+		new clientCount = GetClientCount(true);
+		if(clientCount > GetConVarInt(g_CvarDisconnectSuppressThreshold))
+		{
+			event_PlayerDisc_CountryShow(event, name, dontBroadcast);
+			OnClientDisconnect_JoinMsg();
+		}
+		else
+		{
+			LogMessage("Suppressing disconnect message for %N, server only has %d clients", client, clientCount);
+		}
 	}
-
-
 	return event_PlayerDisconnect_Suppress( event, name, dontBroadcast );
 }
 
