@@ -26,3 +26,5 @@ This is a fork of the [cannounce](https://forums.alliedmods.net/showthread.php?t
     The effect of this is at server start up or start of new map, clients will individually hear the server wide connect sound when they connect.  If a player joins during the middle of a map their customer connect sound (if they have one) will be played to all clients.
 
   * Add `sm_ca_disconnect_suppress_threshold [num]` which suppresses showing any disconnect messages if there is <= this number of clients on the server.  Default: 0 (disabled)
+
+  * Add `sm_ca_disconnect_suppress_ratelimit [seconds]` only show disconnect messages at most once every [seconds].  Default: 0 (disabled)

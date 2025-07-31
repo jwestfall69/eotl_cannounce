@@ -34,7 +34,7 @@
 #include <adminmenu>
 #include <multicolors>
 
-#define VERSION "1.9-eotl-0.8"
+#define VERSION "1.9-eotl-0.9"
 
 /*****************************************************************
 
@@ -46,9 +46,11 @@
 new Handle:hTopMenu = INVALID_HANDLE;
 new String:g_fileset[128];
 new String:g_filesettings[128];
+new g_lastDisconnectMessage = 0;
 
 new Handle:g_CvarConnectDisplayType = INVALID_HANDLE;
 new Handle:g_CvarDisconnectSuppressThreshold = INVALID_HANDLE;
+new Handle:g_CvarDisconnectSuppressRateLimit = INVALID_HANDLE;
 /*****************************************************************
 
 
@@ -96,6 +98,8 @@ public OnPluginStart()
 
 	g_CvarConnectDisplayType = CreateConVar("sm_ca_connectdisplaytype", "1", "[1|0] if 1 then displays connect message after admin check and allows the {PLAYERTYPE} placeholder. If 0 displays connect message on client auth (earlier) and disables the {PLAYERTYPE} placeholder");
 	g_CvarDisconnectSuppressThreshold = CreateConVar("sm_ca_disconnect_suppress_threshold", "0", "suppress showing any disconnect messages if there is <= this number of players");
+	g_CvarDisconnectSuppressRateLimit = CreateConVar("sm_ca_disconnect_suppress_ratelimit", "0", "limit disconnect messages to once every n seconds");
+
 	BuildPath(Path_SM, g_fileset, 128, "data/cannounce_messages.txt");
 	BuildPath(Path_SM, g_filesettings, 128, "data/cannounce_settings.txt");
 
@@ -223,14 +227,20 @@ public Action:event_PlayerDisconnect(Handle:event, const String:name[], bool:don
 	if(client && !IsFakeClient(client) && !dontBroadcast )
 	{
 		new clientCount = GetClientCount(true);
-		if(clientCount > GetConVarInt(g_CvarDisconnectSuppressThreshold))
+		new timeDiff = GetTime() - g_lastDisconnectMessage;
+		if(clientCount <= GetConVarInt(g_CvarDisconnectSuppressThreshold))
 		{
-			event_PlayerDisc_CountryShow(event, name, dontBroadcast);
-			OnClientDisconnect_JoinMsg();
+			LogMessage("Suppressing disconnect message for %N, because server only has %d clients", client, clientCount);
+		}
+		else if(timeDiff <= GetConVarInt(g_CvarDisconnectSuppressRateLimit))
+		{
+			LogMessage("Suppressing disconnect message for %N, because rate limit.  Last message was %d seconds ago", client, timeDiff);
 		}
 		else
 		{
-			LogMessage("Suppressing disconnect message for %N, server only has %d clients", client, clientCount);
+			event_PlayerDisc_CountryShow(event, name, dontBroadcast);
+			OnClientDisconnect_JoinMsg();
+			g_lastDisconnectMessage = GetTime();
 		}
 	}
 	return event_PlayerDisconnect_Suppress( event, name, dontBroadcast );
